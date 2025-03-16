@@ -1,0 +1,130 @@
+# 系统文件
+**/.DS_Store
+
+# 版本控制相关
+**/*.git
+**/*.gitkeep
+
+# 开发环境文件
+.idea/
+.vscode/
+.venv/
+venv/
+__pycache__/
+*.pyc
+**/*.history
+
+# 依赖文件夹
+/node_modules
+/vendor
+/vendor_user
+
+# 测试相关
+/tests
+/test/
+
+# 插件和扩展
+/plugins
+
+# 日志和数据文件
+log/
+**/*.log
+
+# 可执行文件
+/bin
+
+# 配置文件
+.env
+.ignore
+.cursorignore
+
+# 字体文件
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+
+# 样式文件
+*.css
+*.less
+*.scss
+*.sass
+*.styl
+
+# JavaScript 文件
+*.js
+*.mjs
+*.cjs
+
+# 图片文件
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.webp
+*.svg
+*.ico
+
+# 压缩文件
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tbz2
+*.tar.xz
+*.txz
+*.7z
+*.rar
+*.gz
+*.bz2
+*.xz
+*.zst
+*.apk
+
+# 缓存文件
+.cache/
+*.cache
+*.swp
+*.swo
+*.bak
+*.tmp
+*.pid
+*.lock
+thumbs.db
+ehthumbs.db
+
+# 文档文件
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.odt
+*.ods
+*.odp
+*.rtf
+
+# 音频文件
+*.mp3
+*.wav
+*.aac
+*.ogg
+*.flac
+*.m4a
+
+# 视频文件
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.flv
+*.wmv
+*.webm
+*.m4v

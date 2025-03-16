@@ -92,7 +92,7 @@ def add_repo_to_file(data_file_path, config):
 
 
 # 交互式获取 repo_id
-repo_id = input("请输入 repo_id (格式：group/repo): ")
+repo_id = input("请输入 repo_id (格式：group/repo): ").strip()
 
 # 配置字典
 config = {

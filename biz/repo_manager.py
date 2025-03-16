@@ -7,6 +7,8 @@ from typing import Any, Dict, Generator, Tuple
 
 import requests
 from git import GitCommandError, Repo
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
 
 
 class RepositoryManager():
@@ -18,8 +20,7 @@ class RepositoryManager():
             commit_hash: str = None,
             access_token: str = None,
             local_dir: str = None,
-            inclusion_file: str = None,
-            exclusion_file: str = None,
+            ignore_file: str = None,
             gitlab_base_url: str = None,
     ):
         """
@@ -28,10 +29,7 @@ class RepositoryManager():
             commit_hash: Optional commit hash to checkout. If not specified, we pull the latest version of the repo.
             access_token: A GitLab access token to use for cloning private repositories. Not needed for public repos.
             local_dir: The local directory where the repository will be cloned.
-            inclusion_file: A file with a lists of files/directories/extensions to include. Each line must be in one of
-                the following formats: "ext:.my-extension", "file:my-file.py", or "dir:my-directory".
-            exclusion_file: A file with a lists of files/directories/extensions to exclude. Each line must be in one of
-                the following formats: "ext:.my-extension", "file:my-file.py", or "dir:my-directory".
+            ignore_file: 类似与.gitignore 文件，指定要忽略的文件或目录。
             gitlab_base_url: The base URL of the GitLab instance (defaults to https://gitlab.com).
 
         """
@@ -52,11 +50,9 @@ class RepositoryManager():
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
 
-        if inclusion_file and exclusion_file:
-            raise ValueError("Only one of inclusion_file or exclusion_file should be provided.")
-
-        self.inclusions = self._parse_filter_file(inclusion_file) if inclusion_file else None
-        self.exclusions = self._parse_filter_file(exclusion_file) if exclusion_file else None
+        self.ignore_file = ignore_file
+        self._ignore_spec = None,  # 缓存 PathSpec 对象
+        self._ignore_file_mtime = 0  # 缓存 .ignore 文件的修改时间
 
     @cached_property
     def default_branch(self) -> str:
@@ -153,38 +149,60 @@ class RepositoryManager():
 
         return parsed_data
 
+    def get_repo_path(self, file_path, local_dir):
+        """
+        获取仓库相对路径。（从完整路径中去掉local_dir和repo_id）
+        """
+        # 规范化路径，确保格式一致
+        file_path = os.path.normpath(file_path)
+        local_dir = os.path.normpath(self.local_dir)
+        repo_id = os.path.normpath(self.repo_id)
+
+        # 如果 file_path 以 local_dir 开头，则去掉 local_dir
+        if file_path.startswith(local_dir):
+            file_path = file_path[len(local_dir):].lstrip(os.sep)
+
+        # 如果 file_path 以 repo_id 开头，则去掉 repo_id
+        if file_path.startswith(repo_id):
+            file_path = file_path[len(repo_id):].lstrip(os.sep)
+
+        return file_path
+
+    def _load_ignore_spec(self):
+        """
+        加载 .ignore 文件并创建 PathSpec 对象。
+        如果文件未修改，则直接返回缓存的 PathSpec 对象。
+        """
+        if self.ignore_file is None:
+            return PathSpec([])  # 返回一个空的 PathSpec，表示不忽略任何文件
+
+        # 获取 .ignore 文件的修改时间
+        current_mtime = os.path.getmtime(self.ignore_file)
+
+        # 如果文件未修改，则返回缓存的 PathSpec 对象
+        if self._ignore_spec is not None and current_mtime == self._ignore_file_mtime:
+            return self._ignore_spec
+
+        # 如果文件已修改，则重新加载
+        with open(self.ignore_file, 'r', encoding='utf-8') as f:
+            gitignore_rules = f.readlines()
+
+        # 创建 PathSpec 对象并缓存
+        self._ignore_spec = PathSpec.from_lines(GitWildMatchPattern, gitignore_rules)
+        self._ignore_file_mtime = current_mtime  # 更新缓存的文件修改时间
+
+        return self._ignore_spec
+
     def _should_include(self, file_path: str) -> bool:
-        """Checks whether the file should be indexed."""
-        # Exclude symlinks.
-        if os.path.islink(file_path):
-            return False
+        """
+        检查文件是否应该被索引。
+        """
+        repo_file_path = self.get_repo_path(file_path, self.local_dir)
+        # 将扩展名转换为小写
+        repo_file_path = os.path.splitext(repo_file_path)[0] + os.path.splitext(repo_file_path)[1].lower()
 
-        # Exclude hidden files and directories.
-        if any(part.startswith(".") for part in file_path.split(os.path.sep)):
-            return False
-
-        if not self.inclusions and not self.exclusions:
-            return True
-
-        # Filter based on file extensions, file names and directory names.
-        _, extension = os.path.splitext(file_path)
-        extension = extension.lower()
-        file_name = os.path.basename(file_path)
-        dirs = os.path.dirname(file_path).split("/")
-
-        if self.inclusions:
-            return (
-                    extension in self.inclusions.get("ext", [])
-                    or file_name in self.inclusions.get("file", [])
-                    or any(d in dirs for d in self.inclusions.get("dir", []))
-            )
-        elif self.exclusions:
-            return (
-                    extension not in self.exclusions.get("ext", [])
-                    and file_name not in self.exclusions.get("file", [])
-                    and all(d not in dirs for d in self.exclusions.get("dir", []))
-            )
-        return True
+        spec = self._load_ignore_spec()  # 获取缓存的 PathSpec 对象
+        return not spec.match_file(repo_file_path)
 
     def walk(self, get_content: bool = True) -> Generator[Tuple[Any, Dict], None, None]:
         """Walks the local repository path and yields a tuple of (content, metadata) for each file.

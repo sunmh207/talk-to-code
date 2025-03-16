@@ -1,23 +1,23 @@
+# 系统文件
 .DS_Store
+
+# 开发环境文件
 venv/
 .venv/
-test/
 .idea/
-
-config/.env
-config/exclusions.txt
-config/inclusions.txt
-
-log/*
-!log/
-data/*
-!data/
-data/marqoai_data/*
-!data/marqoai_data/
-data/repos/*
-!data/repos/
-
-.env
-.pyc
 __pycache__/
+*.pyc
+
+# 日志和数据文件
+log/*
+data/*
+data/marqoai_data/*
+data/repos/*
+
+# 配置文件
+.env
+.ignore
 .cursorignore
+
+# 测试文件
+test/

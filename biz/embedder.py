@@ -1,5 +1,5 @@
 from abc import ABC
-import logging
+from biz.util.log import logger
 import marqo
 
 from biz.chunker import Chunker
@@ -30,7 +30,7 @@ class Embedder(ABC):
             if len(batch) > chunks_per_batch:
                 for i in range(0, len(batch), chunks_per_batch):
                     sub_batch = batch[i: i + chunks_per_batch]
-                    logging.info("Indexing %d chunks...", len(sub_batch))
+                    logger.info("Indexing %d chunks...", len(sub_batch))
                     self.index.add_documents(
                         documents=[chunk.metadata for chunk in sub_batch],
                         tensor_fields=["text"],
@@ -40,4 +40,4 @@ class Embedder(ABC):
         if batch:
             self.index.add_documents(documents=[chunk.metadata for chunk in batch], tensor_fields=["text"])
 
-        logging.info(f"Successfully embedded {chunk_count} chunks.")
+        logger.info(f"Successfully embedded {chunk_count} chunks.")
