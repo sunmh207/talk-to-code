@@ -20,13 +20,13 @@ class RepositoryManager():
             local_dir: str = None,
             inclusion_file: str = None,
             exclusion_file: str = None,
-            gitlab_base_url: str = "https://gitlab.com",
+            gitlab_base_url: str = None,
     ):
         """
         Args:
             repo_id: The identifier of the repository in owner/repo format, e.g. "Storia-AI/sage".
             commit_hash: Optional commit hash to checkout. If not specified, we pull the latest version of the repo.
-            access_token: A GitHub access token to use for cloning private repositories. Not needed for public repos.
+            access_token: A GitLab access token to use for cloning private repositories. Not needed for public repos.
             local_dir: The local directory where the repository will be cloned.
             inclusion_file: A file with a lists of files/directories/extensions to include. Each line must be in one of
                 the following formats: "ext:.my-extension", "file:my-file.py", or "dir:my-directory".
@@ -35,6 +35,9 @@ class RepositoryManager():
             gitlab_base_url: The base URL of the GitLab instance (defaults to https://gitlab.com).
 
         """
+        if not gitlab_base_url:
+            raise ValueError("gitlab_base_url 不能为空，请提供有效的 GitLab 地址。")
+
         self.repo_id = repo_id
         self.commit_hash = commit_hash
         self.access_token = access_token
@@ -243,22 +246,3 @@ class RepositoryManager():
             except UnicodeDecodeError:
                 logging.warning("Unable to decode file %s.", absolute_file_path)
                 return None
-
-    def from_args(args: Dict):
-        """Creates a GitHubRepoManager from command-line arguments and clones the underlying repository."""
-        repo_manager = GitLabRepoManager(
-            repo_id=args.repo_id,
-            commit_hash=args.commit_hash,
-            access_token=os.getenv("GITHUB_TOKEN"),
-            local_dir=args.local_dir,
-            inclusion_file=args.include,
-            exclusion_file=args.exclude,
-            gitlab_base_url=args.gitlab_base_url,
-        )
-        success = repo_manager.download()
-        if not success:
-            raise ValueError(
-                f"Unable to clone {args.repo_id}. Please check that it exists and you have access to it. "
-                "For private repositories, please set the GITHUB_TOKEN variable in your environment."
-            )
-        return repo_manager

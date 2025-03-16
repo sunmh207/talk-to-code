@@ -51,26 +51,44 @@ def handle_existing_index(url, index_name):
 
 
 def add_repo_to_file(data_file_path, config):
-    """将新的仓库信息添加到指定的 JSON 文件中，处理文件不存在或为空的情况。"""
+    """将新的仓库信息添加到指定的 JSON 文件中。如果 repo_id 已存在，则更新，否则添加。最终按照 index_name 排序。"""
+
     # 检查文件是否存在或为空
     if not os.path.exists(data_file_path) or os.path.getsize(data_file_path) == 0:
         repos = []
     else:
         with open(data_file_path, "r", encoding="utf-8") as f:
-            repos = json.load(f)
+            try:
+                repos = json.load(f)
+                if not isinstance(repos, list):  # 兼容性检查，确保数据是列表
+                    raise ValueError("JSON 文件格式错误，必须为列表。")
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.error(f"读取 JSON 文件失败: {e}")
+                repos = []
 
-    # 添加新元素
-    repos.append({
-        "repo_id": config["repo_id"],
-        "index_name": config["index_name"],
-        "index_status": "done"
-    })
+    # 查找是否已有 repo_id
+    repo_id = config["repo_id"]
+    for repo in repos:
+        if repo.get("repo_id") == repo_id:
+            # 更新已存在的 repo 信息
+            repo["index_name"] = config["index_name"]
+            repo["index_status"] = "done"
+            break
+    else:
+        # 如果 for 循环 未执行 break，说明 repo_id 不存在，添加新记录
+        repos.append({
+            "repo_id": repo_id,
+            "index_name": config["index_name"],
+            "index_status": "done"
+        })
+    # 按照 index_name 进行排序（升序）
+    repos.sort(key=lambda x: x["index_name"])
 
     # 写入文件
     with open(data_file_path, "w", encoding="utf-8") as f:
         json.dump(repos, f, indent=4, ensure_ascii=False)
 
-    logger.info("新仓库信息已成功添加到文件！")
+    logger.info(f"仓库信息 {'更新' if any(r['repo_id'] == repo_id for r in repos) else '添加'} 成功！")
 
 
 # 交互式获取 repo_id
@@ -84,7 +102,6 @@ config = {
     "local_repos_dir": os.getenv('LOCAL_REPOS_DIR', 'data/repos'),
     "gitlab_base_url": os.getenv('GITLAB_BASE_URL'),
     "tokens_per_chunk": int(os.getenv('TOKENS_PER_CHUNK', 800)),
-    "MARQO_MAX_CHUNKS_PER_BATCH": 64,
     "marqo_base_url": os.getenv('MARQO_BASE_URL', 'http://localhost:8882')
 }
 
@@ -130,6 +147,6 @@ embedder = Embedder(
 )
 
 # 执行嵌入数据集操作，确保 chunks_per_batch 从 config 中传递
-embedder.embed_dataset(chunks_per_batch=config["MARQO_MAX_CHUNKS_PER_BATCH"])
+embedder.embed_dataset()
 
 add_repo_to_file(data_file_path="data/repos.json", config=config)

@@ -18,10 +18,8 @@ class Embedder(ABC):
         if not index_name in all_index_names:
             self.client.create_index(index_name, model=model)
 
-    def embed_dataset(self, chunks_per_batch: int):
-        if chunks_per_batch > 64:
-            raise ValueError("Marqo enforces a limit of 64 chunks per batch.")
-
+    def embed_dataset(self):
+        chunks_per_batch = 64
         chunk_count = 0
         batch = []
 
