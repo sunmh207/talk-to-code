@@ -1,0 +1,21 @@
+# 文件黑名单，符合条件的文件不会被处理
+
+# 指定扩展名
+ext:.log
+ext:.tmp
+ext:.bak
+ext:.jpg
+ext:.png
+ext:.gif
+ext:.pdf
+ext:.doc
+ext:.docx
+
+# 指定具体的文件(任意目录下,匹配文件名都不会被处理)
+file:.env
+file:secret.key
+
+# 指定目录(任意位置,匹配目录名都会被处理)
+dir:backup
+dir:temp
+dir:logs

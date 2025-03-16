@@ -1,7 +1,5 @@
 import os
 
-from dotenv import load_dotenv
-
 from biz.llm.client.base import BaseClient
 from biz.llm.client.deepseek import DeepSeekClient
 from biz.llm.client.openai import OpenAIClient
@@ -10,7 +8,6 @@ from biz.llm.client.openai import OpenAIClient
 class Factory:
     @staticmethod
     def getClient(provider: str = None) -> BaseClient:
-        load_dotenv()
         provider = provider or os.getenv("LLM_PROVIDER", "deepseek")
         chat_model_providers = {
             'openai': lambda: OpenAIClient(),

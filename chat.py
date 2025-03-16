@@ -5,10 +5,13 @@ from typing import List
 import gradio as gr
 import pandas as pd
 import yaml
+from dotenv import load_dotenv
 
 from biz.llm.factory import Factory
 from biz.util.log import logger
 from biz.vector_store import VectorStore, Document
+
+load_dotenv("config/.env")
 
 client = Factory.getClient()
 
@@ -33,12 +36,10 @@ def create_system_message(documents: list):
     return system_prompt_template.format(ref_content=ref_contents_str)
 
 
-def chat_with_llm(messages: list, index_name:str, documents:List[Document]):
+def chat_with_llm(messages: list, index_name: str, documents: List[Document]):
     try:
         # 删除掉role为system的消息
         messages = [message for message in messages if message["role"] != "system"]
-
-
 
         # 把背景知识附加在system prompt里
         system_message = create_system_message(documents)

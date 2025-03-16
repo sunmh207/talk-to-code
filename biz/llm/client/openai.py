@@ -1,7 +1,6 @@
 import os
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
-from dotenv import load_dotenv
 from openai import OpenAI
 
 from biz.llm.client.base import BaseClient
@@ -10,8 +9,6 @@ from biz.llm.types import ChatChunk
 
 class OpenAIClient(BaseClient):
     def __init__(self, api_key: str = None):
-        if not os.getenv("OPENAI_API_KEY"):
-            load_dotenv()
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("API key is required. Please provide it or set it in the environment variables.")

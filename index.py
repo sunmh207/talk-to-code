@@ -9,7 +9,7 @@ from biz.embedder import Embedder
 from biz.util.log import logger
 from biz.vector_store import VectorStore
 
-load_dotenv()
+load_dotenv("config/.env")
 
 
 def confirm_and_execute(config):

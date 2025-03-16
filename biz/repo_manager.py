@@ -141,7 +141,8 @@ class RepositoryManager():
 
         parsed_data = {"ext": [], "file": [], "dir": []}
         for line in lines:
-            if line.startswith("#"):
+            line = line.strip()
+            if not line or line.startswith("#"):  # 跳过空行和注释行
                 # This is a comment line.
                 continue
             key, value = line.strip().split(":")

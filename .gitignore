@@ -4,6 +4,10 @@ venv/
 test/
 .idea/
 
+config/.env
+config/exclusions.txt
+config/inclusions.txt
+
 log/*
 !log/
 data/*
