@@ -45,7 +45,12 @@ class FileChunk(Chunk):
     @cached_property
     def content(self) -> Optional[str]:
         """The text content to be embedded. Might contain information beyond just the text snippet from the file."""
-        return self.filename + "\n\n" + self.file_content[self.start_byte: self.end_byte]
+        """
+        start_byte 和 end_byte 是基于字节流的位置索引。如果需要截取字符串内容，必须先将字符串转换为字节流，完成截取后再将字节流转换回字符串格式。
+        直接对字符串进行截取可能会导致中文字符被错误截断，从而出现乱码或错位问题。
+        """
+        return self.filename + "\n\n" + self.file_content.encode("utf-8")[self.start_byte: self.end_byte].decode(
+            "utf-8", "ignore")
 
     @cached_property
     def metadata(self):
