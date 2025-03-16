@@ -93,16 +93,29 @@ def add_repo_to_file(data_file_path, config):
 
 # 交互式获取 repo_id
 repo_id = input("请输入 repo_id (格式：group/repo): ").strip()
+# 确保 repo_id 非空
+if not repo_id:
+    print("repo_id 不能为空，请重新输入。")
+    repo_id = input("请输入 repo_id (格式：group/repo): ").strip()
+
+# 获取分支名输入，并去除前后空格
+branch = input("请输入分支名 (不输入则使用默认分支): ").strip()
+
+# 如果用户未输入分支名，返回 None
+if not branch:
+    branch = None
 
 # 配置字典
 config = {
     "repo_id": repo_id,
+    "commit_hash": branch,
     "index_name": repo_id.replace("/", "-"),
     "gitlab_access_token": os.getenv("GITLAB_ACCESS_TOKEN"),
     "local_repos_dir": os.getenv('LOCAL_REPOS_DIR', 'data/repos'),
     "gitlab_base_url": os.getenv('GITLAB_BASE_URL'),
     "tokens_per_chunk": int(os.getenv('TOKENS_PER_CHUNK', 800)),
-    "marqo_base_url": os.getenv('MARQO_BASE_URL', 'http://localhost:8882')
+    "marqo_base_url": os.getenv('MARQO_BASE_URL', 'http://localhost:8882'),
+    "ignore_file": os.getenv('IGNORE_FILE', "config/.ignore")
 }
 
 # 执行前确认配置
@@ -127,9 +140,11 @@ elif action == 'overwrite':
 # 下载代码仓库
 repo_manager = RepositoryManager(
     repo_id=config["repo_id"],
+    commit_hash=config["commit_hash"],
     access_token=config["gitlab_access_token"],
     local_dir=config["local_repos_dir"],
-    gitlab_base_url=config["gitlab_base_url"]
+    gitlab_base_url=config["gitlab_base_url"],
+    ignore_file=config.get("ignore_file", None)
 )
 
 logger.info(f"正在下载代码仓库 '{config['repo_id']}'...")
