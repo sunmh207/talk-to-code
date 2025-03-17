@@ -108,10 +108,15 @@ def bot(history: list, index_name=None):
 
 # 从 JSON 文件读取数据并转换为 DataFrame
 def load_repos_to_df():
-    with open("data/repos.json", "r") as f:
-        repos = json.load(f)
-    df = pd.DataFrame(repos)
-    return df, repos
+    try:
+        # 尝试打开并读取文件
+        with open("data/repos.json", "r") as f:
+            repos = json.load(f)
+        df = pd.DataFrame(repos)
+        return df, repos
+    except FileNotFoundError:
+        # 如果文件不存在，返回空的 DataFrame 和空列表
+        return pd.DataFrame(), []
 
 
 with gr.Blocks() as app:
