@@ -15,7 +15,7 @@ RUN mkdir -p /app/log /app/data/repos
 # 安装依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 暴露 Flask 的端口
+# 暴露gradio端口
 EXPOSE 7860
 
 # 启动命令

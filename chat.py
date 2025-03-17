@@ -161,4 +161,5 @@ with gr.Blocks() as app:
                 debug_query = gr.Textbox(label="输入文本, 按回车搜索向量库", placeholder="请输入...")
                 debug_query.submit(similarity_search, [debug_index_name, debug_top_k, debug_query], [json_data],
                                    queue=False)
-app.launch()
+
+app.launch(server_name="0.0.0.0", server_port=7860)
